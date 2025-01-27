@@ -14,6 +14,11 @@ app.use(express.static('public'));
 let scriptLogs = [];
 let monitoringInfo = null;
 
+// ping endpoint
+app.get('/health', (req, res) => {
+    res.send({'status': 'ok'});
+});
+
 // WebSocket connection handling
 wss.on('connection', (ws) => {
     console.log('Client connected to server');

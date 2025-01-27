@@ -1,6 +1,6 @@
 module.exports = {
     // Your wallet's private key (keep this secure!)
-    PRIVATE_KEY: "",
+    PRIVATE_KEY: process.env.PRIVATE_KEY,
     
     // Amount of SOL to spend
     AMOUNT_TO_SPEND: 0.1,
