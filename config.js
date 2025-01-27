@@ -3,7 +3,7 @@ module.exports = {
     PRIVATE_KEY: process.env.PRIVATE_KEY,
     
     // Amount of SOL to spend
-    AMOUNT_TO_SPEND: 0.1,
+    AMOUNT_TO_SPEND: 0.05,
     
     // Slippage tolerance in basis points (1 bp = 0.01%, 100 bp = 1%)
     SLIPPAGE_BPS: 2500, // 25% slippage
@@ -22,7 +22,7 @@ module.exports = {
     RPC_URL: 'https://api.mainnet-beta.solana.com',
 
     // Price monitoring settings
-    PRICE_CHECK_INTERVAL: 10, // seconds
+    PRICE_CHECK_INTERVAL: 3, // seconds
     STOP_LOSS_PERCENTAGE: 30, // sell if price drops by 30%
     TAKE_PROFIT_PERCENTAGE: 100, // sell if price increases by 100%
     
@@ -31,5 +31,5 @@ module.exports = {
     SELL_PRIORITY_FEE_SOL: 0.0015, // Increased priority fee for selling
 
     // Scanner settings
-    SCAN_INTERVAL_MINUTES: 10 // Time between token scans
+    SCAN_INTERVAL_MINUTES: 1 // Time between token scans
 } 
