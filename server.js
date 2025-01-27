@@ -80,7 +80,7 @@ function broadcastUpdate(type, data) {
 }
 
 // Start server
-const PORT = 3005;
+const PORT = 8080;
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
