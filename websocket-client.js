@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 let ws;
 
 function connect() {
-    ws = new WebSocket('ws://localhost:3005');
+    ws = new WebSocket('ws://localhost:8080');
     
     ws.on('open', () => {
         console.log('Connected to web interface');
