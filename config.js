@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
     // Your wallet's private key (keep this secure!)
     PRIVATE_KEY: process.env.PRIVATE_KEY,
     
@@ -33,3 +33,11 @@ module.exports = {
     // Scanner settings
     SCAN_INTERVAL_MINUTES: 1 // Time between token scans
 } 
+
+// Function to update config dynamically
+const updateConfig = (newConfig) => {
+    Object.assign(config, newConfig);
+    console.log('✅ Config updated:', config);
+};
+
+module.exports = { config, updateConfig };

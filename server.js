@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
+const { config, updateConfig } = require('./config');
 
 const app = express();
 const server = http.createServer(app);
@@ -37,7 +38,9 @@ wss.on('connection', (ws) => {
             type: 'monitoring_update', 
             data: monitoringInfo 
         }));
+    
     }
+    ws.send(JSON.stringify({ type: 'config_update', data: config }));
 
     // Handle incoming messages
     ws.on('message', (message) => {
@@ -51,6 +54,13 @@ wss.on('connection', (ws) => {
             } else if (data.type === 'monitoring_update') {
                 monitoringInfo = data.data;
                 broadcastUpdate('monitoring_update', data.data);
+            } else if (data.type === 'update_config') {
+                updateConfig(parsedMessage.data);
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'config_update', data: config }));
+                    }
+                });
             }
         } catch (error) {
             console.error('Error processing message:', error);

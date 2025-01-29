@@ -143,10 +143,9 @@
         }
         .log-header {
             display: flex;
-            flex-direction: row;
             align-items: center;
-            margin-bottom: 20px;
-            justify-content: flex-start;
+            width: 100%;
+            position: relative;
         }
         .log-header .logo {
             margin-right: 15px;
@@ -158,6 +157,17 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 500;
+        }
+        .settings-button {
+            position: absolute;
+            right: 20px;
+            top: 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
         }
         .container.infos {
             margin-top: 20px;
@@ -242,6 +252,79 @@
             line-height: 1.6;
             color: #ddd;
         }
+
+        /* Modal Background */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Close Button */
+        .close-modal {
+            color: #fff;
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Section Styling */
+        .modal-section {
+            margin-top: 15px;
+        }
+
+        .modal-section h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        /* Input Fields */
+        .modal-content label {
+            display: block;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        /* Save Button */
+        .save-settings {
+            width: 100%;
+            padding: 10px;
+            background: #00ff88;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -250,6 +333,7 @@
             <div class="log-header">
                 <img class="logo" src="logo.png" alt="">
                 <div class="subtitle">GAMBLING terminal</div>
+                <div class="settings-button">Settings</div>
             </div>
             <div class="log-content" id="script-log">Waiting for script to start...</div>
         </div>
@@ -380,6 +464,50 @@ STOP_LOSS=10
             </div>
         </div>
     </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Settings</h2>
+
+            <!-- Trading Parameters Section -->
+            <div class="modal-section">
+                <h3>Trading Parameters</h3>
+                <label for="amountToSpend">AMOUNT_TO_SPEND (SOL):</label>
+                <input type="number" id="amountToSpend" value="0.2">
+
+                <label for="takeProfit">TAKE_PROFIT_PERCENTAGE:</label>
+                <input type="number" id="takeProfit" value="100">
+
+                <label for="stopLoss">STOP_LOSS_PERCENTAGE:</label>
+                <input type="number" id="stopLoss" value="-20">
+            </div>
+
+            <!-- Advanced Settings Section -->
+            <div class="modal-section">
+                <h3>Advanced Settings</h3>
+                <label for="slippageBps">SLIPPAGE_BPS:</label>
+                <input type="number" id="slippageBps" value="1000">
+
+                <label for="sellSlippage">SELL_SLIPPAGE_BPS:</label>
+                <input type="number" id="sellSlippage" value="2000">
+
+                <label for="priorityFee">PRIORITY_FEE_SOL:</label>
+                <input type="number" id="priorityFee" value="0">
+
+                <label for="minLiquidity">MIN_LIQUIDITY_USD:</label>
+                <input type="number" id="minLiquidity" value="0">
+
+                <label for="scanInterval">SCAN_INTERVAL (Minute):</label>
+                <input type="number" id="scanInterval" value="5000">
+            </div>
+
+            <!-- Save Button -->
+            <button class="save-settings">Save Settings</button>
+        </div>
+    </div>
+
 
     <script>
         let ws = null;
@@ -619,9 +747,93 @@ STOP_LOSS=10
                 console.error('Error updating monitoring panel:', error);
             }
         }
-
+        
         // Start connection when page loads
         connectWebSocket();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const settingsButton = document.querySelector(".settings-button");
+            const modal = document.getElementById("settingsModal");
+            const closeModal = document.querySelector(".close-modal");
+            const saveSettingsButton = document.querySelector(".save-settings");
+        
+            let latestConfig = {}; // Store latest received config
+        
+            let ws = new WebSocket('wss://' + window.location.hostname);
+        
+            ws.onopen = () => {
+                console.log('✅ WebSocket connected');
+            };
+        
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log('📩 Message received:', message);
+        
+                    if (message.type === 'config_update') {
+                        console.log('🔄 Storing latest config:', message.data);
+                        latestConfig = message.data; // Store latest config but don't update UI yet
+                    }
+                } catch (error) {
+                    console.error('Error processing WebSocket message:', error);
+                }
+            };
+        
+            // Function to populate form fields dynamically when modal opens
+            function populateSettingsForm(config) {
+                console.log('📝 Populating form with:', config);
+                
+                document.getElementById("amountToSpend").value = config.AMOUNT_TO_SPEND ?? 0.05;
+                document.getElementById("takeProfit").value = config.TAKE_PROFIT_PERCENTAGE ?? 100;
+                document.getElementById("stopLoss").value = config.STOP_LOSS_PERCENTAGE ?? 30;
+                document.getElementById("slippageBps").value = config.SLIPPAGE_BPS ?? 2500;
+                document.getElementById("sellSlippage").value = config.SELL_SLIPPAGE_BPS ?? 3000;
+                document.getElementById("priorityFee").value = config.PRIORITY_FEE_SOL ?? 0.0015;
+                document.getElementById("minLiquidity").value = config.MIN_LIQUIDITY_USD ?? 0;
+                document.getElementById("scanInterval").value = config.SCAN_INTERVAL_MINUTES ?? 1;
+            }
+        
+            // Open modal and update form with the latest received config
+            settingsButton.addEventListener("click", function () {
+                console.log('⚡ Opening settings modal...');
+                populateSettingsForm(latestConfig); // Populate form when modal opens
+                modal.style.display = "flex";
+            });
+        
+            // Close Modal on Click
+            closeModal.addEventListener("click", function () {
+                modal.style.display = "none";
+            });
+        
+            // Close Modal if Clicking Outside
+            window.addEventListener("click", function (event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+        
+            // Save Settings and Send Updated Data to Backend
+            saveSettingsButton.addEventListener("click", function () {
+                const updatedConfig = {
+                    AMOUNT_TO_SPEND: parseFloat(document.getElementById("amountToSpend").value),
+                    TAKE_PROFIT_PERCENTAGE: parseFloat(document.getElementById("takeProfit").value),
+                    STOP_LOSS_PERCENTAGE: parseFloat(document.getElementById("stopLoss").value),
+                    SLIPPAGE_BPS: parseInt(document.getElementById("slippageBps").value),
+                    SELL_SLIPPAGE_BPS: parseInt(document.getElementById("sellSlippage").value),
+                    PRIORITY_FEE_SOL: parseFloat(document.getElementById("priorityFee").value),
+                    MIN_LIQUIDITY_USD: parseFloat(document.getElementById("minLiquidity").value),
+                    SCAN_INTERVAL_MINUTES: parseFloat(document.getElementById("scanInterval").value),
+                };
+        
+                console.log('📤 Sending updated config:', updatedConfig);
+                ws.send(JSON.stringify({ type: 'update_config', data: updatedConfig }));
+        
+                alert("✅ Settings updated!");
+                modal.style.display = "none";
+            });
+        });
+        
+
     </script>
 </body>
 </html> 
