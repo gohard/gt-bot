@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 let ws;
 
 function connect() {
-    ws = new WebSocket('ws://trading-bot-app-934s8.ondigitalocean.app');
+    ws = new WebSocket('wss://trading-bot-app-934s8.ondigitalocean.app');
     
     ws.on('open', () => {
         console.log('Connected to web interface');

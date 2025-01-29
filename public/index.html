@@ -390,7 +390,7 @@ STOP_LOSS=10
             if (ws) return;
 
             console.log('Web client: Attempting to connect to WebSocket server...');
-            ws = new WebSocket('ws://' + window.location.hostname + ':3005');
+            ws = new WebSocket('wss://' + window.location.hostname);
             
             ws.onopen = () => {
                 console.log('Web client: Successfully connected to server');
