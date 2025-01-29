@@ -56,11 +56,11 @@ wss.on('connection', (ws) => {
                 broadcastUpdate('monitoring_update', data.data);
             } else if (data.type === 'update_config') {
                 updateConfig(parsedMessage.data);
-                wss.clients.forEach(client => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'config_update', data: config }));
-                    }
-                });
+                // wss.clients.forEach(client => {
+                //     if (client.readyState === WebSocket.OPEN) {
+                //         client.send(JSON.stringify({ type: 'config_update', data: config }));
+                //     }
+                // });
             }
         } catch (error) {
             console.error('Error processing message:', error);
