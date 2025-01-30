@@ -330,7 +330,6 @@ async function findBestToken() {
     const selectedToken = topTokens.reduce((newest, current) => 
         current.ageInHours < newest.ageInHours ? current : newest
     , topTokens[0]);
-    console.log("selectedToken", selectedToken);
     if (selectedToken) {
         console.log('\n=== Selected Token for Purchase ===');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
