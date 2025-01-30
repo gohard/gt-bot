@@ -1,6 +1,5 @@
 const { Connection, PublicKey } = require('@solana/web3.js');
 const fetch = require('node-fetch');
-const config = require('./config');
 const wsClient = require('./websocket-client');
 const fs = require('fs');
 
@@ -331,7 +330,7 @@ async function findBestToken() {
     const selectedToken = topTokens.reduce((newest, current) => 
         current.ageInHours < newest.ageInHours ? current : newest
     , topTokens[0]);
-    
+    console.log("selectedToken", selectedToken);
     if (selectedToken) {
         console.log('\n=== Selected Token for Purchase ===');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -366,15 +365,13 @@ async function findBestToken() {
 }
 
 async function main() {
-    try {
-        while (true) {
-            await findBestToken();
-            console.log(`\nWaiting ${config.SCAN_INTERVAL_MINUTES} minutes before next scan...`);
-            await new Promise(resolve => setTimeout(resolve, config.SCAN_INTERVAL_MINUTES * 60 * 1000));
-        }
-    } catch (error) {
-        console.error('Error in main loop:', error.message);
+    while (true) {
+        await findBestToken();
+        // Re-read from trader-config.json on each loop:
+        const newConfig = JSON.parse(fs.readFileSync('trader-config.json', 'utf8'));
+        console.log(`\nWaiting ${newConfig.SCAN_INTERVAL} milliseconds before next scan...`);
+        await new Promise(r => setTimeout(r, newConfig.SCAN_INTERVAL));
     }
 }
 
-main(); 
+main();

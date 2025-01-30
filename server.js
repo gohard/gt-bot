@@ -3,6 +3,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const { config, updateConfig } = require('./config');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -40,7 +41,7 @@ wss.on('connection', (ws) => {
         }));
     
     }
-    ws.send(JSON.stringify({ type: 'config_update', data: config }));
+    ws.send(JSON.stringify({ type: 'config_update', data: JSON.parse(fs.readFileSync('trader-config.json', 'utf8')) }));
 
     // Handle incoming messages
     ws.on('message', (message) => {
@@ -55,13 +56,14 @@ wss.on('connection', (ws) => {
                 monitoringInfo = data.data;
                 broadcastUpdate('monitoring_update', data.data);
             } else if (data.type === 'update_config') {
-                updateConfig(parsedMessage.data);
-                // wss.clients.forEach(client => {
-                //     if (client.readyState === WebSocket.OPEN) {
-                //         client.send(JSON.stringify({ type: 'config_update', data: config }));
-                //     }
-                // });
-            }
+                updateConfig(data.data); 
+                // Broadcast to all clients that config changed
+                wss.clients.forEach(client => {
+                  if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'config_update', data: config }));
+                  }
+                });
+              }
         } catch (error) {
             console.error('Error processing message:', error);
         }

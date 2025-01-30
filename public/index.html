@@ -499,7 +499,7 @@ STOP_LOSS=10
                 <label for="minLiquidity">MIN_LIQUIDITY_USD:</label>
                 <input type="number" id="minLiquidity" value="0">
 
-                <label for="scanInterval">SCAN_INTERVAL (Minute):</label>
+                <label for="scanInterval">SCAN_INTERVAL (Milliseconds):</label>
                 <input type="number" id="scanInterval" value="5000">
             </div>
 
@@ -790,7 +790,7 @@ STOP_LOSS=10
                 document.getElementById("sellSlippage").value = config.SELL_SLIPPAGE_BPS ?? 3000;
                 document.getElementById("priorityFee").value = config.PRIORITY_FEE_SOL ?? 0.0015;
                 document.getElementById("minLiquidity").value = config.MIN_LIQUIDITY_USD ?? 0;
-                document.getElementById("scanInterval").value = config.SCAN_INTERVAL_MINUTES ?? 1;
+                document.getElementById("scanInterval").value = config.SCAN_INTERVAL ?? 1;
             }
         
             // Open modal and update form with the latest received config
@@ -822,7 +822,7 @@ STOP_LOSS=10
                     SELL_SLIPPAGE_BPS: parseInt(document.getElementById("sellSlippage").value),
                     PRIORITY_FEE_SOL: parseFloat(document.getElementById("priorityFee").value),
                     MIN_LIQUIDITY_USD: parseFloat(document.getElementById("minLiquidity").value),
-                    SCAN_INTERVAL_MINUTES: parseFloat(document.getElementById("scanInterval").value),
+                    SCAN_INTERVAL: parseFloat(document.getElementById("scanInterval").value),
                 };
         
                 console.log('📤 Sending updated config:', updatedConfig);

@@ -3,8 +3,9 @@ const { Keypair } = require('@solana/web3.js');
 const bs58 = require('bs58');
 const fetch = require('node-fetch');
 const fs = require('fs');
-const config = require('./config');
+const { defaultConfig } = require('./config');
 const wsClient = require('./websocket-client');
+var newConfig = JSON.parse(fs.readFileSync('trader-config.json', 'utf8'));
 
 // Connect to WebSocket server
 wsClient.connect();
@@ -80,7 +81,7 @@ let lastPriceCheck = 0;
 let cachedSolPrice = null;
 
 // Remove hardcoded RPC endpoints and use config
-const RPC_ENDPOINTS = config.RPC_ENDPOINTS;
+const RPC_ENDPOINTS = newConfig.RPC_ENDPOINTS;
 
 let currentRpcIndex = 0;
 
@@ -490,8 +491,8 @@ async function buyToken(connection, wallet, token) {
         const quoteUrl = new URL('https://quote-api.jup.ag/v6/quote');
         quoteUrl.searchParams.append('inputMint', inputMint);
         quoteUrl.searchParams.append('outputMint', outputMint);
-        quoteUrl.searchParams.append('amount', Math.floor(config.AMOUNT_TO_SPEND * 1e9).toString());
-        quoteUrl.searchParams.append('slippageBps', config.SLIPPAGE_BPS.toString());
+        quoteUrl.searchParams.append('amount', Math.floor(newConfig.AMOUNT_TO_SPEND * 1e9).toString());
+        quoteUrl.searchParams.append('slippageBps', newConfig.SLIPPAGE_BPS.toString());
         quoteUrl.searchParams.append('onlyDirectRoutes', 'false');
         quoteUrl.searchParams.append('asLegacyTransaction', 'false');
         
@@ -536,7 +537,7 @@ async function buyToken(connection, wallet, token) {
             quoteResponse: quoteData,
             userPublicKey: wallet.publicKey.toString(),
             wrapUnwrapSOL: true,
-            prioritizationFeeLamports: config.PRIORITY_FEE_SOL * 1e9,
+            prioritizationFeeLamports: newConfig.PRIORITY_FEE_SOL * 1e9,
             asLegacyTransaction: false,
             useVersionedTransaction: true,
             dynamicComputeUnitLimit: true
@@ -676,7 +677,7 @@ async function executeSell(connection, wallet, tokenAddress, tokenData, isTrigge
             inputMint: tokenAddress,
             outputMint: "So11111111111111111111111111111111111111112", // SOL
             amount: tokenBalance,
-            slippageBps: config.SELL_SLIPPAGE_BPS
+            slippageBps: newConfig.SELL_SLIPPAGE_BPS
         }));
         
         const quoteData = await quoteResponse.json();
@@ -995,8 +996,9 @@ async function monitorPositions(connection, wallet) {
                     }
                 }
 
-                if (position.priceChange <= -config.STOP_LOSS_PERCENTAGE || 
-                    position.priceChange >= config.TAKE_PROFIT_PERCENTAGE) {
+
+                if (position.priceChange <= -newConfig.STOP_LOSS_PERCENTAGE || 
+                    position.priceChange >= newConfig.TAKE_PROFIT_PERCENTAGE) {
                     console.log(`\n=== Selling ${tokenData.symbol} ===`);
                     console.log(`• Price change: ${position.priceChange.toFixed(2)}%`);
                     const success = await executeSell(connection, wallet, address, tokenData, true);
@@ -1133,9 +1135,9 @@ async function main() {
         let connection = await getWorkingConnection();
         let privateKeyArray;
         try {
-            privateKeyArray = JSON.parse(config.PRIVATE_KEY);
+            privateKeyArray = JSON.parse(defaultConfig.PRIVATE_KEY);
         } catch {
-            privateKeyArray = Array.from(bs58.decode(config.PRIVATE_KEY));
+            privateKeyArray = Array.from(bs58.decode(defaultConfig.PRIVATE_KEY));
         }
         const wallet = Keypair.fromSecretKey(new Uint8Array(privateKeyArray));
         
@@ -1179,3 +1181,6 @@ getDexScreenerInfo = async function(tokenAddress) {
 };
 
 main(); 
+
+
+// Error: Error in monitoring loop: ENOENT: no such file or directory, unlink 'selected_token.json'
